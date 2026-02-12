@@ -1,15 +1,14 @@
 package com.yann.smart_valuator_api.service;
 
+import com.yann.smart_valuator_api.DTO.AiEstimationResult;
+import com.yann.smart_valuator_api.DTO.ChatCompletionRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
-import java.util.HashMap;
-import java.util.Map;
+import tools.jackson.databind.ObjectMapper;
+
+import java.util.*;
 
 @Service
 public class HuggingFaceService {
@@ -17,25 +16,72 @@ public class HuggingFaceService {
     @Value("${hf.api.key}")
     private String hfApiKey;
 
+    private static final String HF_URL =
+            "https://router.huggingface.co/v1/chat/completions";
+
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String generateDescription(String inputText) {
-        String url = "https://api-inference.huggingface.co/pipeline/text-generation";
+    public String generateDescription(String productDetails) {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + hfApiKey);
+        headers.setBearerAuth(hfApiKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("inputs", inputText);
+        String prompt = """
+            You are an expert in electronics resale.
+            
+            Return ONLY a valid JSON like this:
+            {
+              "description": "...",
+              "estimatedPrice": 123.45,
+              "verdict": "interesting" | "not interesting"
+            }
+            
+            Product:
+            %s
+            """.formatted(productDetails);
 
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        ChatCompletionRequest request = new ChatCompletionRequest();
+        request.model = "mistralai/Mistral-7B-Instruct-v0.2";
+        request.messages = List.of(
+                new ChatCompletionRequest.Message("user", prompt)
+        );
+        request.temperature = 0.7;
+        request.max_tokens = 300;
+
+        HttpEntity<ChatCompletionRequest> entity =
+                new HttpEntity<>(request, headers);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-            return response.getBody();
-        } catch (HttpClientErrorException e) {
-            return "Error from Hugging Face API: " + e.getMessage();
+            ResponseEntity<Map> response =
+                    restTemplate.postForEntity(HF_URL, entity, Map.class);
+
+            Map<String, Object> body = response.getBody();
+            List<Map<String, Object>> choices =
+                    (List<Map<String, Object>>) body.get("choices");
+
+            Map<String, Object> message =
+                    (Map<String, Object>) choices.get(0).get("message");
+
+            return message.get("content").toString().trim();
+
+        } catch (Exception e) {
+            return "Hugging Face error: " + e.getMessage();
+        }
+    }
+
+    public AiEstimationResult generateStructuredEstimation(String productDetails) {
+
+        String rawJson = generateDescription(productDetails);
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(rawJson, AiEstimationResult.class);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Invalid AI response format: " + rawJson, e
+            );
         }
     }
 }

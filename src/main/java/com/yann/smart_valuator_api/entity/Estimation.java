@@ -2,6 +2,7 @@ package com.yann.smart_valuator_api.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,11 +32,12 @@ public class Estimation {
     private Integer conditionRating;
 
     @Column(name = "estimated_price", precision = 10, scale = 2)
-    private BigDecimal estimatedPrice;
+    private Double estimatedPrice;
 
     @Column(name = "ai_description", columnDefinition = "TEXT")
     private String aiDescription;
 
+    @CreationTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
