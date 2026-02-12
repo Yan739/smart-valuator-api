@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:15
@@ -13,19 +11,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-
-  api:
-    build: ./smart-valuator-api
-    container_name: smart-valuator-api
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/smartvaluator
-      SPRING_DATASOURCE_USERNAME: smartvaluator
-      SPRING_DATASOURCE_PASSWORD: smartvaluator
-      HF_API_KEY: ${HF_API_KEY}
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
 
   pgadmin:
     image: dpage/pgadmin4
