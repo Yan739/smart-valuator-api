@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,12 +30,11 @@ public class EstimationService {
                 estimation.getConditionRating()
         );
 
-        AiEstimationResult ai =
-                huggingFaceService.generateStructuredEstimation(productDetails);
+        AiEstimationResult ai = huggingFaceService.generateStructuredEstimation(productDetails);
 
         estimation.setAiDescription(ai.getDescription());
-        estimation.setEstimatedPrice(ai.getEstimatedPrice());
-        estimation.setCreatedAt(LocalDateTime.now()); // date de création
+        estimation.setEstimatedPrice(BigDecimal.valueOf(ai.getEstimatedPrice()));
+        estimation.setCreatedAt(LocalDateTime.now());
 
         return estimationRepository.save(estimation);
     }

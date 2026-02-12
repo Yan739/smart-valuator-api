@@ -32,7 +32,7 @@ public class Estimation {
     private Integer conditionRating;
 
     @Column(name = "estimated_price", precision = 10, scale = 2)
-    private Double estimatedPrice;
+    private BigDecimal estimatedPrice;
 
     @Column(name = "ai_description", columnDefinition = "TEXT")
     private String aiDescription;

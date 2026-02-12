@@ -75,13 +75,16 @@ public class HuggingFaceService {
 
         String rawJson = generateDescription(productDetails);
 
+        String cleanedJson = rawJson
+                .replaceAll("(?s)```.*?\\n", "") // enlève ```json ou ```
+                .replaceAll("```", "")
+                .trim();
+
         try {
             ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(rawJson, AiEstimationResult.class);
+            return mapper.readValue(cleanedJson, AiEstimationResult.class);
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Invalid AI response format: " + rawJson, e
-            );
+            throw new RuntimeException("Invalid AI response format: " + rawJson, e);
         }
     }
 }
