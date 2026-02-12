@@ -18,30 +18,30 @@ public class EstimationController {
 
     private final EstimationService estimationService;
 
+    @PostMapping(consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Estimation> generateEstimation(@RequestBody Estimation estimation){
+        return ResponseEntity.ok(estimationService.generateAiEstimation(estimation));
+    }
+
     @GetMapping(produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Estimation>> getAllEstimations(){
         return ResponseEntity.ok(estimationService.getAllEstimations());
     }
 
-    @PostMapping(consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Estimation> createEstimation(@RequestBody Estimation estimation){
-        return ResponseEntity.ok(estimationService.saveEstimation(estimation));
+    @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Estimation> getEstimationById(@PathVariable Long id){
+        return ResponseEntity.ok(estimationService.getEstimationById(id));
     }
 
-    @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Estimation> getEstimationById(@PathVariable Long id) throws Throwable {
-        return ResponseEntity.ok(estimationService.getEstimationById(id));
+    @PutMapping(value = "/{id}", consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Estimation> updateEstimation(@PathVariable Long id, @RequestBody Estimation estimation){
+        return ResponseEntity.ok(estimationService.updateEstimation(id, estimation));
     }
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteEstimation(@PathVariable Long id){
         estimationService.deleteEstimation(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping(value = "/{id}", consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Estimation> updateEstimation(@PathVariable Long id, @RequestBody Estimation estimation){
-        return ResponseEntity.ok(estimationService.updateEstimation(id, estimation));
     }
 }
 

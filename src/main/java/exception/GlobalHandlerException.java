@@ -43,7 +43,7 @@ public class GlobalHandlerException {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiError> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+    public ResponseEntity<ApiError> handleDataIntegrityViolationException(@NonNull DataIntegrityViolationException ex) {
         ApiError apiError = new ApiError(
                 "Data integrity violation: " + ex.getMostSpecificCause().getMessage(),
                 HttpStatus.CONFLICT.value(),

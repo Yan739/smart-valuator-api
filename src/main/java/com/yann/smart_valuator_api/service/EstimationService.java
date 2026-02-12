@@ -17,9 +17,25 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 public class EstimationService {
 
-    @Autowired
     private final EstimatimationRepository estimationRepository;
+    private final HuggingFaceService huggingFaceService;
 
+    public Estimation generateAiEstimation(Estimation estimation) {
+        String prompt = String.format(
+                "Describe %s, brand %s, category %s, year %d, condition %d/10, " +
+                        "give a natural description, approximate price, and advice if interesting.",
+                estimation.getItemName(),
+                estimation.getBrand(),
+                estimation.getCategory(),
+                estimation.getYear(),
+                estimation.getConditionRating()
+        );
+
+        String aiResponse = huggingFaceService.generateDescription(prompt);
+        estimation.setAiDescription(aiResponse);
+
+        return estimationRepository.save(estimation);
+    }
 
     public java.util.List<Estimation> getAllEstimations() {
         return estimationRepository.findAll();
@@ -29,13 +45,6 @@ public class EstimationService {
         return estimationRepository.findById(id).orElseThrow(() -> new EstimationNotFoundException(id));
     }
 
-    public Estimation saveEstimation(@NonNull Estimation estimation) {
-
-        if (estimation.getId() != null){
-            estimationRepository.findById(estimation.getId()).orElseThrow(() -> new EstimationNotFoundException(estimation.getId()));
-        }
-        return estimationRepository.save(estimation);
-    }
 
     public void deleteEstimation(Long id) {
         estimationRepository.deleteById(id);
