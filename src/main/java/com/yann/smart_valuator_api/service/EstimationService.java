@@ -3,12 +3,9 @@ package com.yann.smart_valuator_api.service;
 import com.yann.smart_valuator_api.DTO.AiEstimationResult;
 import com.yann.smart_valuator_api.entity.Estimation;
 import com.yann.smart_valuator_api.repository.EstimationRepository;
-import exception.EstimationNotFoundException;
 import lombok.AllArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,7 +16,11 @@ public class EstimationService {
     private final EstimationRepository estimationRepository;
     private final HuggingFaceService huggingFaceService;
 
-    public Estimation generateAiEstimation(@NonNull Estimation estimation) {
+    public Estimation generateAiEstimation(Estimation estimation) {
+        // Set creation time first
+        estimation.setCreatedAt(LocalDateTime.now());
+
+        // Build product details string
         String productDetails = String.format(
                 "Item: %s, Brand: %s, Category: %s, Purchase Year: %d, Condition: %d/10",
                 estimation.getItemName(),
@@ -30,20 +31,30 @@ public class EstimationService {
         );
 
         try {
+            // Call AI service
             AiEstimationResult aiResult =
                     huggingFaceService.generateStructuredEstimation(productDetails);
 
-            estimation.setAiDescription(aiResult.getDescription()); // Cast to BigDecimal
-            estimation.setEstimatedPrice(BigDecimal.valueOf(aiResult.getEstimatedPrice()));
+            // Set AI results
+            estimation.setAiDescription(aiResult.getDescription());
+            estimation.setEstimatedPrice(aiResult.getEstimatedPrice());
 
-            estimation.setCreatedAt(LocalDateTime.now());
+            // Save to database
+            Estimation saved = estimationRepository.save(estimation);
 
-            return estimationRepository.save(estimation);
+            System.out.println("=== SAVED ESTIMATION ===");
+            System.out.println("ID: " + saved.getId());
+            System.out.println("Price: " + saved.getEstimatedPrice());
+            System.out.println("CreatedAt: " + saved.getCreatedAt());
+            System.out.println("========================");
+
+            return saved;
 
         } catch (Exception e) {
+            e.printStackTrace();
+            // On error, save with error message
             estimation.setAiDescription("Error generating description: " + e.getMessage());
             estimation.setEstimatedPrice(null);
-            estimation.setCreatedAt(LocalDateTime.now());
             return estimationRepository.save(estimation);
         }
     }
@@ -54,10 +65,10 @@ public class EstimationService {
 
     public Estimation getEstimationById(Long id) {
         return estimationRepository.findById(id)
-                .orElseThrow(() -> new EstimationNotFoundException(id));
+                .orElseThrow(() -> new RuntimeException("Estimation not found with id: " + id));
     }
 
-    public Estimation updateEstimation(Long id, @NonNull Estimation estimation) {
+    public Estimation updateEstimation(Long id, Estimation estimation) {
         Estimation existing = getEstimationById(id);
 
         existing.setItemName(estimation.getItemName());
