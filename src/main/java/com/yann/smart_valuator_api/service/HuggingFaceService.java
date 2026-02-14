@@ -177,7 +177,7 @@ public class HuggingFaceService {
 
             System.out.println("=== PARSED RESULT ===");
             System.out.println("Description: " + result.getDescription());
-            System.out.println("Price: " + result.getEstimatedPrice());
+            System.out.println("Price: €" + result.getEstimatedPrice());
             System.out.println("Verdict: " + result.getVerdict());
             System.out.println("=====================");
 
@@ -212,11 +212,14 @@ public class HuggingFaceService {
         String condition = conditionMatcher.find() ? conditionMatcher.group(1) + "/10" : "used";
         String year = yearMatcher.find() ? yearMatcher.group(1) : "unknown year";
 
-        return String.format("A %s from %s in %s condition. Based on current market analysis, " +
+        return String.format("A %s from %s in %s condition. Based on current European market analysis, " +
                         "this item retains reasonable resale value in the used electronics market.",
                 itemName, year, condition);
     }
 
+    /**
+     * Fallback price estimation based on European market (EUR)
+     */
     private BigDecimal estimateFallbackPrice(String productDetails) {
         String lower = productDetails.toLowerCase();
 
@@ -229,41 +232,42 @@ public class HuggingFaceService {
 
         BigDecimal basePrice;
 
+        // Prices in EUR for European market (2026)
         if (lower.contains("iphone")) {
-            if (lower.contains("15") || lower.contains("16")) basePrice = new BigDecimal("700");
-            else if (lower.contains("14")) basePrice = new BigDecimal("550");
-            else if (lower.contains("13")) basePrice = new BigDecimal("400");
-            else if (lower.contains("12")) basePrice = new BigDecimal("300");
-            else if (lower.contains("11")) basePrice = new BigDecimal("220");
-            else if (lower.contains("x") || lower.contains("10")) basePrice = new BigDecimal("180");
-            else basePrice = new BigDecimal("150");
+            if (lower.contains("15") || lower.contains("16")) basePrice = new BigDecimal("650");
+            else if (lower.contains("14")) basePrice = new BigDecimal("500");
+            else if (lower.contains("13")) basePrice = new BigDecimal("380");
+            else if (lower.contains("12")) basePrice = new BigDecimal("280");
+            else if (lower.contains("11")) basePrice = new BigDecimal("200");
+            else if (lower.contains("x") || lower.contains("10")) basePrice = new BigDecimal("170");
+            else basePrice = new BigDecimal("140");
         }
         else if (lower.contains("samsung") || lower.contains("galaxy")) {
-            if (lower.contains("s24") || lower.contains("s23")) basePrice = new BigDecimal("500");
-            else if (lower.contains("s22") || lower.contains("s21")) basePrice = new BigDecimal("350");
-            else basePrice = new BigDecimal("200");
+            if (lower.contains("s24") || lower.contains("s23")) basePrice = new BigDecimal("470");
+            else if (lower.contains("s22") || lower.contains("s21")) basePrice = new BigDecimal("320");
+            else basePrice = new BigDecimal("180");
         }
         else if (lower.contains("macbook")) {
-            if (lower.contains("pro")) basePrice = new BigDecimal("900");
-            else basePrice = new BigDecimal("600");
+            if (lower.contains("pro")) basePrice = new BigDecimal("850");
+            else basePrice = new BigDecimal("550");
         }
         else if (lower.contains("laptop")) {
-            basePrice = new BigDecimal("400");
+            basePrice = new BigDecimal("370");
         }
         else if (lower.contains("ipad")) {
-            if (lower.contains("pro")) basePrice = new BigDecimal("500");
-            else basePrice = new BigDecimal("300");
+            if (lower.contains("pro")) basePrice = new BigDecimal("470");
+            else basePrice = new BigDecimal("280");
         }
         else if (lower.contains("tablet")) {
-            basePrice = new BigDecimal("200");
+            basePrice = new BigDecimal("180");
         }
-        else if (lower.contains("watch")) basePrice = new BigDecimal("250");
-        else if (lower.contains("airpods")) basePrice = new BigDecimal("100");
+        else if (lower.contains("watch")) basePrice = new BigDecimal("230");
+        else if (lower.contains("airpods")) basePrice = new BigDecimal("90");
         else if (lower.contains("console") || lower.contains("playstation") || lower.contains("xbox")) {
-            basePrice = new BigDecimal("350");
+            basePrice = new BigDecimal("320");
         }
         else {
-            basePrice = new BigDecimal("150");
+            basePrice = new BigDecimal("140");
         }
 
         BigDecimal adjustedPrice = basePrice.multiply(new BigDecimal(conditionMultiplier));
