@@ -3,7 +3,7 @@
 <div align="center">
 
 ![Java](https://img.shields.io/badge/Java-17+-blue?logo=java&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-7.0-green?logo=spring&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.2-green?logo=spring&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue?logo=postgresql&logoColor=white)
 ![Build](https://img.shields.io/badge/Build-Maven-red?logo=apachemaven&logoColor=white)
 ![AI](https://img.shields.io/badge/AI-Llama%203.3-orange?logo=meta&logoColor=white)
@@ -15,7 +15,7 @@
 
 ## Description
 
-AI-powered REST API for electronic item valuation built with **Spring Boot 7** for the **European market**. It integrates **Llama 3.3-70B** via Hugging Face for intelligent price estimation in **EUR (€)** with market-based fallback pricing. Demonstrates clean layered architecture (**Controller** → **Service** → **Repository** → **Entity/DTO**), AI integration, error handling, and REST best practices.
+AI-powered REST API for electronic item valuation built with **Spring Boot 4.0.2** for the **European market**. It integrates **Llama 3.3-70B** via Hugging Face for intelligent price estimation in **EUR (€)** with market-based fallback pricing. Demonstrates clean layered architecture (**Controller** → **Service** → **Repository** → **Entity/DTO**), AI integration, error handling, and REST best practices.
 
 ---
 
@@ -47,12 +47,12 @@ AI-powered REST API for electronic item valuation built with **Spring Boot 7** f
 | Technology | Version |
 |---|---|
 | Java | 17+ |
-| Spring Boot | 7.0+ |
+| Spring Boot | 4.0.2 |
 | Spring Data JPA | - |
 | PostgreSQL | - |
 | Hugging Face API | Llama 3.3-70B |
 | Lombok | - |
-| tools.jackson | 3.0+ |
+| tools.jackson (Jackson 3.x) | bundled with Spring Boot 4 |
 
 ---
 
@@ -254,12 +254,12 @@ cd smart-valuator-api
 
 # Configure database
 # Edit src/main/resources/application.properties:
-spring.datasource.url=jdbc:postgresql://localhost:5432/smart_valuator
+spring.datasource.url=jdbc:postgresql://localhost:5432/smartvaluator
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 
-# Add Hugging Face API key
-hf.api.key=your_huggingface_api_key
+# Set Hugging Face API key as environment variable
+export HF_API_KEY=your_huggingface_api_key
 
 # Build
 mvn clean compile
@@ -280,33 +280,32 @@ API available at: `http://localhost:8080`
 ### application.properties
 ```properties
 # Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/smart_valuator
-spring.datasource.username=postgres
-spring.datasource.password=password
+spring.datasource.url=jdbc:postgresql://localhost:5432/smartvaluator
+spring.datasource.username=smartvaluator
+spring.datasource.password=smartvaluator
 spring.jpa.hibernate.ddl-auto=update
 
-# Hugging Face API
-hf.api.key=hf_your_api_key_here
+# Hugging Face API — set HF_API_KEY as an environment variable
+hf.api.key=${HF_API_KEY}
 
-# Server
+# Server (default port)
 server.port=8080
 
-# CORS
-cors.allowed-origins=http://localhost:4200
+# CORS is enabled globally via @CrossOrigin on EstimationController
 ```
 
 ### Database Schema
 ```sql
 CREATE TABLE estimations (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     item_name VARCHAR(255) NOT NULL,
-    brand VARCHAR(255),
-    category VARCHAR(255),
+    brand VARCHAR(100),
+    category VARCHAR(100),
     year INTEGER NOT NULL,
-    condition_rating INTEGER,
-    estimated_price DECIMAL(10,2),
+    condition_rating INTEGER CHECK (condition_rating BETWEEN 1 AND 10),
+    estimated_price NUMERIC(10,2),
     ai_description TEXT,
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
