@@ -9,14 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Centralized exception handler for all REST controllers.
- * Converts exceptions into a consistent {@link ApiError} JSON response.
- */
 @RestControllerAdvice
 public class GlobalHandlerException {
 
-    /** Returns 404 when an estimation is not found by ID. */
+    /** 404 - estimation not found. */
     @ExceptionHandler(EstimationNotFoundException.class)
     public ResponseEntity<ApiError> handleEstimationNotFoundException(@NonNull EstimationNotFoundException ex) {
         ApiError apiError = new ApiError(
@@ -27,7 +23,7 @@ public class GlobalHandlerException {
         return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.NOT_FOUND);
     }
 
-    /** Catch-all handler returning 500 for any unhandled exception. */
+    /** 500 - catch-all for unhandled exceptions. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGlobalException(Exception ex) {
         ApiError apiError = new ApiError(
@@ -38,7 +34,7 @@ public class GlobalHandlerException {
         return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    /** Returns 404 when a JPA query returns no results. */
+    /** 404 - empty JPA result. */
     @ExceptionHandler(EmptyResultDataAccessException.class)
     public ResponseEntity<ApiError> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex) {
         ApiError apiError = new ApiError(
@@ -49,7 +45,7 @@ public class GlobalHandlerException {
         return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.NOT_FOUND);
     }
 
-    /** Returns 409 Conflict when a database constraint is violated (e.g. duplicate key). */
+    /** 409 - database constraint violation. */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolationException(@NonNull DataIntegrityViolationException ex) {
         ApiError apiError = new ApiError(

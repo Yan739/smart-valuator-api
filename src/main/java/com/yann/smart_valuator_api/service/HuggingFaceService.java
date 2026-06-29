@@ -15,13 +15,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Service responsible for calling the Hugging Face Inference API
- * to generate AI-powered price estimations for used electronics.
- *
- * <p>Uses Llama 3.3-70B via the HuggingFace router endpoint.
- * Falls back to rule-based pricing when the AI call fails or returns invalid data.</p>
- */
 @Service
 public class HuggingFaceService {
 
@@ -36,19 +29,12 @@ public class HuggingFaceService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public HuggingFaceService() {
-        // Configure RestTemplate with explicit timeouts to avoid hanging requests
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(15000); // 15 seconds
         factory.setReadTimeout(30000);    // 30 seconds
         this.restTemplate = new RestTemplate(factory);
     }
 
-    /**
-     * Sends a chat completion request to Hugging Face and returns the raw text response.
-     *
-     * @param productDetails formatted string describing the item (name, brand, condition, etc.)
-     * @return raw JSON string from the AI, or a sentinel error string on failure
-     */
     public String generateDescription(String productDetails) {
 
         HttpHeaders headers = new HttpHeaders();
@@ -126,16 +112,6 @@ public class HuggingFaceService {
         }
     }
 
-    /**
-     * Calls {@link #generateDescription(String)} and parses the raw AI response
-     * into a structured {@link AiEstimationResult}.
-     *
-     * <p>If the AI call fails, returns invalid JSON, or produces a zero/null price,
-     * a rule-based fallback result is returned instead.</p>
-     *
-     * @param productDetails formatted string describing the item
-     * @return a fully populated AiEstimationResult (never null)
-     */
     public AiEstimationResult generateStructuredEstimation(String productDetails) {
 
         String rawJson = generateDescription(productDetails);
@@ -162,7 +138,6 @@ public class HuggingFaceService {
 
             AiEstimationResult result = new AiEstimationResult();
 
-            // Extract description
             if (jsonNode.has("description") && !jsonNode.get("description").isNull()) {
                 result.setDescription(jsonNode.get("description").asText());
             } else {
@@ -223,12 +198,7 @@ public class HuggingFaceService {
         return result;
     }
 
-    /**
-     * Generates a generic human-readable description from the raw product details string.
-     * Used when the AI is unavailable or returns an unusable response.
-     */
     private String generateFallbackDescription(String productDetails) {
-        // Extract key fields from the formatted product details string
         Pattern namePattern = Pattern.compile("Item: ([^,]+)");
         Pattern conditionPattern = Pattern.compile("Condition: (\\d+)/10");
         Pattern yearPattern = Pattern.compile("Purchase Year: (\\d+)");
@@ -246,15 +216,6 @@ public class HuggingFaceService {
                 itemName, year, condition);
     }
 
-    /**
-     * Estimates a fallback price in EUR using rule-based category matching and condition scaling.
-     * Base prices reflect the European used-electronics market as of 2026.
-     *
-     * <p>Formula: {@code finalPrice = basePrice × (conditionRating / 10)}</p>
-     *
-     * @param productDetails formatted string describing the item
-     * @return estimated price rounded to 2 decimal places
-     */
     private BigDecimal estimateFallbackPrice(String productDetails) {
         String lower = productDetails.toLowerCase();
 
@@ -310,15 +271,7 @@ public class HuggingFaceService {
         return adjustedPrice.setScale(2, java.math.RoundingMode.HALF_UP);
     }
 
-    /**
-     * Strips markdown code fences and extracts the first valid JSON object from the AI response.
-     * Handles cases where the model wraps the JSON in ```json ... ``` blocks or adds prose around it.
-     *
-     * @param response raw text returned by the AI
-     * @return cleaned JSON string, or an empty/partial string if no JSON object was found
-     */
     private String extractJsonFromResponse(String response) {
-        // Strip markdown code fences that the model may wrap the JSON in
         String cleaned = response
                 .replaceAll("```json\\s*", "")
                 .replaceAll("```\\s*", "")
