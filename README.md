@@ -343,7 +343,7 @@ if (price == null || price.compareTo(BigDecimal.ZERO) == 0) {
 - **BigDecimal** is used for all monetary values to ensure precision
 - **EUR (€)** is the currency for all prices (European market)
 - **LocalDateTime** is serialized in ISO-8601 format for frontend compatibility
-- **tools.jackson** (Jackson 3.x) is used for JSON processing in Spring Boot 7
+- **tools.jackson** (Jackson 3.x) is used for JSON processing in Spring Boot 4
 - **Fallback pricing** ensures the system works even without AI connectivity
 - **Condition rating** (1-10) directly affects final price estimation
 - AI descriptions provide natural language context for valuations in European market context
