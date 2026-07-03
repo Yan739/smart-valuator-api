@@ -31,7 +31,7 @@ public class HuggingFaceService {
     public HuggingFaceService() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(15000); // 15 seconds
-        factory.setReadTimeout(30000);    // 30 seconds
+        factory.setReadTimeout(90000);    // 90 seconds
         this.restTemplate = new RestTemplate(factory);
     }
 
